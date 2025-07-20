@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// Withdrawal Modal Functions
+// Updated Withdrawal Modal Functions
 function openWithdrawModal() {
     document.getElementById('withdrawModal').style.display = 'block';
 }
@@ -49,7 +49,12 @@ function closeWithdrawModal() {
 }
 
 function submitWithdraw() {
-    // Create the form if it doesn't exist (fallback)
+    // Show loading state
+    const confirmBtn = document.querySelector('#withdrawModal .confirm-btn');
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    confirmBtn.disabled = true;
+
+    // Create or find the withdrawal form
     let form = document.getElementById('withdrawForm');
     if (!form) {
         form = document.createElement('form');
@@ -66,7 +71,10 @@ function submitWithdraw() {
         document.body.appendChild(form);
     }
     
-    form.submit();
+    // Submit the form after a small delay to ensure UI updates
+    setTimeout(() => {
+        form.submit();
+    }, 300);
 }
 
 // Initialize modal events
@@ -91,5 +99,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
-
