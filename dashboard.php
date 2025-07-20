@@ -68,6 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
 </head>
 <body class="dashboard-page">
+        <!-- Logo in top right corner -->
+    <div class="logo-container">
+        <img src="./assets/image/image.png" alt="Company Logo" class="logo">
+    </div>
     <div class="container">
         <h1>Welcome back, <?php echo htmlspecialchars($userName); ?>!</h1>
         
@@ -88,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div class="stats">
             <div class="stat-box">
-                <h3>Lifetime Statistics</h3>
+                <h3><i class="fas fa-chart-line"></i> Lifetime Statistics</h3>
                 <p>Total recycled bottles: <strong><?php echo $totalBottles; ?></strong></p>
                 <p>Total earnings: <strong><?php echo $totalAmount; ?> BDT</strong></p>
             </div>
@@ -125,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <input type="hidden" name="withdraw" value="1">
 </form>
 
-        <a href="logout.php" class="btn logout">Logout</a>
+        <a href="logout.php" class="btn logout"><i class="fas fa-power-off"></i> Logout</a>
     </div>
     <script src="assets/js/script.js"></script>
 </body>
