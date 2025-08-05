@@ -77,7 +77,7 @@ function getCurrentBalance($userId) {
     
     // Get total earned minus withdrawn amounts
     $stmt = $conn->prepare("SELECT 
-        (SELECT IFNULL(SUM(bottle_count), 0) * 2 FROM recycling_records WHERE user_id = ?) - 
+        (SELECT IFNULL(SUM(bottle_count), 0) * 0.50 FROM recycling_records WHERE user_id = ?) - 
         (SELECT IFNULL(SUM(amount), 0) FROM withdrawals WHERE user_id = ?) AS balance");
     $stmt->bind_param("ii", $userId, $userId);
     $stmt->execute();
@@ -93,14 +93,28 @@ function getCurrentBalance($userId) {
 function processWithdrawal($userId, $amount) {
     $db = new Database();
     $conn = $db->getConnection();
-    
+
+    // Minimum withdrawal requirement: 2 BDT (4 bottles)
+    $minWithdrawal = 2.00;
+
+    if ($amount < $minWithdrawal) {
+        return false; // Block withdrawal if below minimum
+    }
+
+    // Check if user has enough balance (extra safety)
+    $currentBalance = getCurrentBalance($userId);
+    if ($currentBalance < $minWithdrawal) {
+        return false;
+    }
+
+    // Proceed with withdrawal if checks pass
     $stmt = $conn->prepare("INSERT INTO withdrawals (user_id, amount, withdrawal_date) VALUES (?, ?, NOW())");
     $stmt->bind_param("id", $userId, $amount);
     $success = $stmt->execute();
-    
+
     $stmt->close();
     $db->closeConnection();
-    
+
     return $success;
 }
 
