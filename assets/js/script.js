@@ -1,101 +1,135 @@
-// Client-side form validation
 document.addEventListener('DOMContentLoaded', function() {
-    // Phone number input - allow only digits and limit to 11
+    // Phone number validation
     const phoneInput = document.getElementById('phone');
     if (phoneInput) {
         phoneInput.addEventListener('input', function(e) {
-            // Remove any non-digit characters
             let value = e.target.value.replace(/\D/g, '');
-            // Limit to 11 digits
             e.target.value = value.substring(0, 11);
-        });
-
-        // Validate on form submission
-        const form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const phoneValue = phoneInput.value.replace(/\D/g, '');
-                if (phoneValue.length !== 11) {
-                    e.preventDefault();
-                    alert('Please enter exactly 11-digit phone number');
-                }
-            });
-        }
-    }
-
-    // Bottle count form submission confirmation
-    const bottleForm = document.querySelector('.dashboard-page form');
-    if (bottleForm) {
-        bottleForm.addEventListener('submit', function(e) {
-            const bottleCount = parseInt(document.getElementById('bottle_count').value);
-            if (isNaN(bottleCount) || bottleCount < 1) {
-                e.preventDefault();
-                alert('Please enter a valid number of bottles (at least 1)');
+            
+            // Visual feedback
+            if (value.length === 11) {
+                e.target.classList.add('valid');
+                e.target.classList.remove('invalid');
+            } else {
+                e.target.classList.add('invalid');
+                e.target.classList.remove('valid');
             }
         });
     }
+
+    // Form validation with better error messages
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            // Phone validation
+            if (phoneInput && form.contains(phoneInput)) {
+                const phoneValue = phoneInput.value.replace(/\D/g, '');
+                if (phoneValue.length !== 11) {
+                    e.preventDefault();
+                    showToast('❌ Please enter a valid 11-digit phone number', 'error');
+                    phoneInput.focus();
+                }
+            }
+
+            // Bottle count validation
+            const bottleInput = form.querySelector('#bottle_count');
+            if (bottleInput) {
+                const bottleCount = parseInt(bottleInput.value);
+                if (isNaN(bottleCount) || bottleCount < 1) {
+                    e.preventDefault();
+                    showToast('❌ Please enter at least 1 bottle', 'error');
+                    bottleInput.focus();
+                }
+            }
+        });
+    });
+
+    // Enhanced withdrawal modal setup
+    const modal = document.getElementById('withdrawModal');
+    if (modal) {
+        const cancelBtn = modal.querySelector('.cancel-btn');
+        
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closeWithdrawModal();
+        });
+        
+        cancelBtn.addEventListener('click', closeWithdrawModal);
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeWithdrawModal();
+        });
+    }
+
+    // Auto-close toast notifications
+    setTimeout(() => {
+        const toasts = document.querySelectorAll('.toast');
+        toasts.forEach(toast => toast.remove());
+    }, 5000);
 });
 
+// Toast notification system
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 5000);
+}
 
-
-
-// Updated Withdrawal Modal Functions
+// Enhanced withdrawal flow with all safety checks
 function openWithdrawModal() {
-    document.getElementById('withdrawModal').style.display = 'block';
+    const balanceEl = document.querySelector('.balance-amount');
+    if (!balanceEl) return;
+
+    const currentBalance = parseFloat(balanceEl.textContent);
+    const minWithdrawal = 2.00; // Minimum 2 BDT required
+
+    if (currentBalance < minWithdrawal) {
+        showToast(`⚠️ Withdrawal failed. You need at least ${minWithdrawal} BDT (4 bottles) to withdraw.\n\nCurrent balance: ${currentBalance.toFixed(2)} BDT`, 'warning');
+        return;
+    }
+
+    const modal = document.getElementById('withdrawModal');
+    if (!modal) return;
+
+    // Update modal content
+    modal.querySelector('.modal-message').innerHTML = `
+        You are about to withdraw <strong>${currentBalance.toFixed(2)} BDT</strong>.
+        <div class="min-withdrawal-hint">Minimum withdrawal: ${minWithdrawal} BDT (4 bottles)</div>
+    `;
+    modal.style.display = 'block';
 }
 
 function closeWithdrawModal() {
-    document.getElementById('withdrawModal').style.display = 'none';
+    const modal = document.getElementById('withdrawModal');
+    if (modal) modal.style.display = 'none';
 }
 
 function submitWithdraw() {
-    // Show loading state
-    const confirmBtn = document.querySelector('#withdrawModal .confirm-btn');
+    const modal = document.getElementById('withdrawModal');
+    if (!modal) return;
+
+    const confirmBtn = modal.querySelector('.confirm-btn');
+    const balanceEl = document.querySelector('.balance-amount');
+    if (!confirmBtn || !balanceEl) return;
+
+    const currentBalance = parseFloat(balanceEl.textContent);
+    const minWithdrawal = 2.00;
+
+    // Final validation
+    if (currentBalance < minWithdrawal) {
+        showToast(`❌ Withdrawal failed. Minimum ${minWithdrawal} BDT required (your balance: ${currentBalance.toFixed(2)} BDT)`, 'error');
+        closeWithdrawModal();
+        return;
+    }
+
+    // Visual feedback
     confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     confirmBtn.disabled = true;
+    modal.querySelector('.cancel-btn').disabled = true;
 
-    // Create or find the withdrawal form
-    let form = document.getElementById('withdrawForm');
-    if (!form) {
-        form = document.createElement('form');
-        form.id = 'withdrawForm';
-        form.method = 'POST';
-        form.style.display = 'none';
-        
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'withdraw';
-        input.value = '1';
-        
-        form.appendChild(input);
-        document.body.appendChild(form);
-    }
-    
-    // Submit the form after a small delay to ensure UI updates
+    // Submit after delay
     setTimeout(() => {
-        form.submit();
-    }, 300);
+        const form = document.getElementById('withdrawForm');
+        if (form) form.submit();
+    }, 1500);
 }
-
-// Initialize modal events
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('withdrawModal');
-    const cancelBtn = document.querySelector('#withdrawModal .cancel-btn');
-    
-    // Close when clicking outside modal
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            closeWithdrawModal();
-        }
-    });
-    
-    // Close when clicking cancel
-    cancelBtn.addEventListener('click', closeWithdrawModal);
-    
-    // Close when pressing ESC key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeWithdrawModal();
-        }
-    });
-});
