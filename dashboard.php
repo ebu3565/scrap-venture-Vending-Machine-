@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 $userName = $_SESSION['user_name'];
 $totalBottles = getUserTotalBottles($userId);
-$totalAmount = $totalBottles * 2; // Total lifetime earnings
+$totalAmount = $totalBottles * 0.50; // Total lifetime earnings
 
 // Get current balance (not yet withdrawn)
 $currentBalance = getCurrentBalance($userId); // You'll need to implement this function
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (addRecyclingRecord($userId, $bottleCount)) {
                 $message = "Thank you for recycling $bottleCount bottles!";
                 $totalBottles = getUserTotalBottles($userId);
-                $totalAmount = $totalBottles * 2;
+                $totalAmount = $totalBottles * 0.50;
                 $currentBalance = getCurrentBalance($userId); // Refresh balance
             } else {
                 $message = "Failed to record your recycling. Please try again.";
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "Withdrawal request successful! Please wait 12 hours for processing.";
                 $currentBalance = 0;
             } else {
-                $message = "Withdrawal failed. Please try again.";
+                $message =  "Withdrawal failed. You need at least 2 BDT (4 bottles) to withdraw. Current balance: $currentBalance BDT";
             }
         } else {
             $message = "No balance available for withdrawal.";
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="form-group">
                 <label for="bottle_count">How many bottles are you recycling today?</label>
                 <input type="number" id="bottle_count" name="bottle_count" min="1" value="1" required>
-                <small>Price per bottle: 2 BDT</small>
+                <small>Price per bottle: 0.50 BDT</small>
             </div>
             <button type="submit" class="btn">Submit</button>
         </form>
